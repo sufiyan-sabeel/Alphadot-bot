@@ -100,23 +100,6 @@ def main() -> int:
         print(f"DEX     : {', '.join(dex) if dex else 'MISSING'}")
         print(f"Entries : {len(names)}")
 
-        # Branding / launcher checks from the binary manifest.
-        try:
-            mf = BinaryManifest(z.read("AndroidManifest.xml"))
-            joined = " ".join(mf.strings).lower()
-            for bad in FORBIDDEN:
-                if bad in joined and bad not in (args.expect_package or ""):
-                    errors.append(f"forbidden branding string present: {bad}")
-            # launcher intent present?
-            has_launcher = any(
-                "launcher" in mf.str(a.get(-1, -1)).lower()
-                for (n, a) in mf.elements
-            ) or any("launcher" in s.lower() for s in mf.strings)
-            if not has_launcher:
-                errors.append("no LAUNCHER category found in manifest")
-        except Exception as e:
-            print(f"WARNING: manifest parse issue: {e}")
-
     info = aapt_badging(apk)
     if info:
         print(f"Package : {info['package']}")
@@ -127,8 +110,22 @@ def main() -> int:
             errors.append(
                 f"package {info['package']} does not match expected {args.expect_package}"
             )
+        if not info["launchable"]:
+            errors.append("no launchable activity reported by aapt")
     else:
+        # Fallback: dependency-free binary manifest parse.
         print("NOTE    : aapt not available; structural checks only")
+        try:
+            with zipfile.ZipFile(apk) as z:
+                mf = BinaryManifest(z.read("AndroidManifest.xml"))
+            joined = " ".join(mf.strings).lower()
+            for bad in FORBIDDEN:
+                if bad in joined and bad not in (args.expect_package or ""):
+                    errors.append(f"forbidden branding string present: {bad}")
+            if "android.intent.category.launcher" not in joined:
+                errors.append("no LAUNCHER category found in manifest")
+        except Exception as e:
+            print(f"WARNING: manifest parse issue: {e}")
 
     if errors:
         print("FAIL:")
