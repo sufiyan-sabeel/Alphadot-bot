@@ -1,0 +1,44 @@
+# Gradle
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Android
+local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Keystores / signing
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+
+# Secrets
+.env
+.env.*
+!.env.example
+secrets.properties
+*.pem
+*.p12
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+patcher/patch-report.json
+
+# The extracted reference tree is not part of the build.
+/base/

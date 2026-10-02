@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AlphaDot</string>
+    <string name="settings_title">Settings</string>
+
+    <string name="chat_hint">Message AlphaDot…</string>
+    <string name="send">Send</string>
+    <string name="new_conversation">New conversation</string>
+    <string name="history">History</string>
+    <string name="menu_settings">Settings</string>
+
+    <string name="settings_provider_section">AI PROVIDER</string>
+    <string name="provider_local">Local / offline demo (no account)</string>
+    <string name="provider_gemini">Google Gemini</string>
+    <string name="provider_openai">OpenAI-compatible endpoint</string>
+    <string name="settings_api_key">API key (stored only on this device)</string>
+    <string name="settings_base_url">Base URL (e.g. https://api.openai.com/v1)</string>
+    <string name="settings_model">Model (optional)</string>
+    <string name="settings_system_prompt">System prompt</string>
+    <string name="settings_save">Save settings</string>
+    <string name="settings_saved">Settings saved</string>
+
+    <string name="about_title">ABOUT</string>
+    <string name="about_body">AlphaDot 1.0.0\n\nA free, open-source Android AI chatbot.\n\nCreator: Umaiz Sufiyan\nGitHub: https://github.com/sufiyan-sabeel\nInstagram: https://instagram.com/alphadot.app\n\nAlphaDot is an independent project. It is not affiliated with, endorsed by, or connected to Grok, X Corp, or any other AI vendor. No API keys are bundled with this app — you configure your own provider, or use local/offline demo mode.</string>
+
+    <string name="error_no_provider">No AI provider configured. Open Settings to add one, or keep using local demo mode.</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+</resources>

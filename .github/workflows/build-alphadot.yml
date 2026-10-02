@@ -1,0 +1,110 @@
+name: Build AlphaDot APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Analyze, patch, build and verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install APK analysis dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # AAPT is used for richer metadata when available; the pipeline also
+          # has a dependency-free fallback parser.
+          sudo apt-get update
+          sudo apt-get install -y aapt || true
+
+      - name: Verify base APK (if provided)
+        run: |
+          if [ -f base.apk ]; then
+            echo "base.apk found"
+            sha256sum base.apk
+          else
+            echo "No base.apk committed. Building from clean-room AlphaDot source."
+          fi
+
+      - name: Analyze (base.apk when present, else project)
+        run: |
+          if [ -f base.apk ]; then
+            python patcher/analyze.py base.apk
+          else
+            python patcher/analyze.py .
+          fi
+
+      - name: Patch / prepare AlphaDot build source
+        run: |
+          if [ -f base.apk ]; then
+            python patcher/patch.py base.apk
+          else
+            python patcher/patch.py --project .
+          fi
+
+      - name: Verify patched project
+        run: python patcher/verify.py --help > /dev/null && echo "verify.py ready"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build debug APK
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Locate and verify APK
+        id: apk
+        run: |
+          set -e
+          APK=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+          if [ -z "$APK" ]; then
+            echo "ERROR: APK was not generated"
+            exit 1
+          fi
+          echo "APK_PATH=$APK" >> "$GITHUB_OUTPUT"
+          cp "$APK" AlphaDot-debug.apk
+          python patcher/verify.py AlphaDot-debug.apk
+
+      - name: Print build summary
+        run: |
+          echo "=== ALPHADOT BUILD ==="
+          echo "Package: com.alphadot.app"
+          echo "Version: 1.0.0"
+          echo "APK: AlphaDot-debug.apk"
+          echo "Size: $(stat -c%s AlphaDot-debug.apk) bytes"
+          echo "SHA256: $(sha256sum AlphaDot-debug.apk | awk '{print $1}')"
+          echo "Build status: SUCCESS"
+          echo "======================"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AlphaDot-APK
+          path: AlphaDot-debug.apk
+          if-no-files-found: error
+          retention-days: 30
