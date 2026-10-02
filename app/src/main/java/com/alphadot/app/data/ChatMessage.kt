@@ -12,7 +12,7 @@ data class ChatMessage(
 /** An ordered conversation. */
 data class Conversation(
     val id: String,
-    val title: String,
+    var title: String,
     val messages: MutableList<ChatMessage> = mutableListOf(),
     val createdAt: Long = System.currentTimeMillis(),
     var updatedAt: Long = System.currentTimeMillis()
